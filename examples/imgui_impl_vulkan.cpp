@@ -309,15 +309,14 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-            if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+            if (pcmd->UserCallback != NULL)
             {
-                // Special callback to reset graphics state
-                ImGui_ImplVulkan_SetupRenderState(draw_data, command_buffer, fd, fb_width, fb_height);
-            }
-            else if (pcmd->UserCallback)
-            {
-                // User callback (registered via ImDrawList::AddCallback)
-                pcmd->UserCallback(cmd_list, pcmd);
+                // User callback, registered via ImDrawList::AddCallback()
+                // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
+                if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+                    ImGui_ImplVulkan_SetupRenderState(draw_data, command_buffer, fd, fb_width, fb_height);
+                else
+                    pcmd->UserCallback(cmd_list, pcmd);
             }
             else
             {
