@@ -68,10 +68,10 @@ static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceC
     ctx->RSSetViewports(1, &vp);
 
     // Setup shader and vertex buffers
-    unsigned int vertex_buffer_stride = sizeof(ImDrawVert);
-    unsigned int vertex_buffer_offset = 0;
+    unsigned int stride = sizeof(ImDrawVert);
+    unsigned int offset = 0;
     ctx->IASetInputLayout(g_pInputLayout);
-    ctx->IASetVertexBuffers(0, 1, &g_pVB, &vertex_buffer_stride, &vertex_buffer_offset);
+    ctx->IASetVertexBuffers(0, 1, &g_pVB, &stride, &offset);
     ctx->IASetIndexBuffer(g_pIB, sizeof(ImDrawIdx) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
     ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     ctx->VSSetShader(g_pVertexShader, NULL, 0);
@@ -204,7 +204,7 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
     ctx->IAGetVertexBuffers(0, 1, &old.VertexBuffer, &old.VertexBufferStride, &old.VertexBufferOffset);
     ctx->IAGetInputLayout(&old.InputLayout);
 
-    // Setup initial render state
+    // Setup desired DX state
     ImGui_ImplDX11_SetupRenderState(draw_data, ctx);
 
     // Render command lists

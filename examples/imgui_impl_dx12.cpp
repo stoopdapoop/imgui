@@ -191,7 +191,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
     fr->VertexBuffer->Unmap(0, &range);
     fr->IndexBuffer->Unmap(0, &range);
 
-    // Setup initial render state
+    // Setup desired DX state
     ImGui_ImplDX12_SetupRenderState(draw_data, ctx, fr);
 
     // Render command lists

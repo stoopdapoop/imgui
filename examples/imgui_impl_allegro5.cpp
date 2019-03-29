@@ -60,19 +60,9 @@ struct ImDrawVertAllegro
     ALLEGRO_COLOR col;
 };
 
-// Render function.
-// (this used to be set in io.RenderDrawListsFn and called by ImGui::Render(), but you can now call this directly from your main loop)
-void ImGui_ImplAllegro5_RenderDrawData(ImDrawData* draw_data)
+static void ImGui_ImplAllegro5_SetupRenderState(ImDrawData* draw_data)
 {
-    // Backup Allegro state that will be modified
-    ALLEGRO_TRANSFORM last_transform = *al_get_current_transform();
-    ALLEGRO_TRANSFORM last_projection_transform = *al_get_current_projection_transform();
-    int last_clip_x, last_clip_y, last_clip_w, last_clip_h;
-    al_get_clipping_rectangle(&last_clip_x, &last_clip_y, &last_clip_w, &last_clip_h);
-    int last_blender_op, last_blender_src, last_blender_dst;
-    al_get_blender(&last_blender_op, &last_blender_src, &last_blender_dst);
-
-    // Setup render state
+    // Setup blending
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
 
     // Setup orthographic projection matrix
@@ -88,7 +78,24 @@ void ImGui_ImplAllegro5_RenderDrawData(ImDrawData* draw_data)
         al_orthographic_transform(&transform, L, T, 1.0f, R, B, -1.0f);
         al_use_projection_transform(&transform);
     }
+}
 
+// Render function.
+// (this used to be set in io.RenderDrawListsFn and called by ImGui::Render(), but you can now call this directly from your main loop)
+void ImGui_ImplAllegro5_RenderDrawData(ImDrawData* draw_data)
+{
+    // Backup Allegro state that will be modified
+    ALLEGRO_TRANSFORM last_transform = *al_get_current_transform();
+    ALLEGRO_TRANSFORM last_projection_transform = *al_get_current_projection_transform();
+    int last_clip_x, last_clip_y, last_clip_w, last_clip_h;
+    al_get_clipping_rectangle(&last_clip_x, &last_clip_y, &last_clip_w, &last_clip_h);
+    int last_blender_op, last_blender_src, last_blender_dst;
+    al_get_blender(&last_blender_op, &last_blender_src, &last_blender_dst);
+
+    // Setup desired render state
+    ImGui_ImplAllegro5_SetupRenderState(draw_data);
+
+    // Render command lists
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
@@ -131,10 +138,16 @@ void ImGui_ImplAllegro5_RenderDrawData(ImDrawData* draw_data)
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
             if (pcmd->UserCallback)
             {
-                pcmd->UserCallback(cmd_list, pcmd);
+                // User callback, registered via ImDrawList::AddCallback()
+                // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
+                if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+                    ImGui_ImplAllegro5_SetupRenderState(draw_data);
+                else
+                    pcmd->UserCallback(cmd_list, pcmd);
             }
             else
             {
+                // Draw
                 ALLEGRO_BITMAP* texture = (ALLEGRO_BITMAP*)pcmd->TextureId;
                 al_set_clipping_rectangle(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y, pcmd->ClipRect.z - pcmd->ClipRect.x, pcmd->ClipRect.w - pcmd->ClipRect.y);
                 al_draw_prim(&vertices[0], g_VertexDecl, texture, idx_offset, idx_offset + pcmd->ElemCount, ALLEGRO_PRIM_TRIANGLE_LIST);

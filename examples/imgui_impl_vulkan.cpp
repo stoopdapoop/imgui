@@ -293,7 +293,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
         vkUnmapMemory(g_Device, fd->IndexBufferMemory);
     }
 
-    // Setup initial render state
+    // Setup desired Vulkan state
     ImGui_ImplVulkan_SetupRenderState(draw_data, command_buffer, fd, fb_width, fb_height);
 
     // Will project scissor/clipping rectangles into framebuffer space

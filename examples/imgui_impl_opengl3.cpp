@@ -245,14 +245,13 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
         clip_origin_lower_left = false;
 #endif
 
+    // Setup desired GL state
     // Recreate the VAO every time (this is to easily allow multiple GL contexts to be rendered to. VAO are not shared among GL contexts)
     // The renderer would actually work without any VAO bound, but then our VertexAttrib calls would overwrite the default one currently bound.
     GLuint vertex_array_object = 0;
 #ifndef IMGUI_IMPL_OPENGL_ES2
     glGenVertexArrays(1, &vertex_array_object);
 #endif
-
-    // Setup initial render state
     ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width, fb_height, vertex_array_object);
 
     // Will project scissor/clipping rectangles into framebuffer space
